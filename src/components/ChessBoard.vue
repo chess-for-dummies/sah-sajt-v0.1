@@ -67,8 +67,40 @@ export default {
       }
       return false;
     },
-    validPawnMove(/*prevRow, prevCol, row, col, isWhite*/) {
-      return true;
+    validPawnMove(prevRow, prevCol, row, col, isWhite) {
+      if (isWhite) {
+        if (prevRow - row === 1 && col === prevCol) {
+          return true;
+        }
+        if (prevRow === 6 && row === 4 && col === prevCol) {
+          return true;
+        }
+        if (
+          prevRow - row === 1 &&
+          Math.abs(col - prevCol) === 1 &&
+          this.board[row][col] !== null &&
+          this.board[row][col].isWhite !== isWhite
+        ) {
+          return true;
+        }
+        return false;
+      } else {
+        if (row - prevRow === 1 && col === prevCol) {
+          return true;
+        }
+        if (row === 3 && prevRow === 1 && col === prevCol) {
+          return true;
+        }
+        if (
+          row - prevRow === 1 &&
+          Math.abs(col - prevCol) === 1 &&
+          this.board[row][col] !== null &&
+          this.board[row][col].isWhite !== isWhite
+        ) {
+          return true;
+        }
+        return false;
+      }
     },
     validMove(prev, row, col) {
       const prevRow = prev.row;
@@ -76,6 +108,11 @@ export default {
       const piece = prev.piece;
       if (piece === null) return false;
       if (prev.row === row && prev.col === col) return false;
+      if (
+        this.board[row][col] !== null &&
+        this.board[prev.row][prev.col].isWhite === this.board[row][col].isWhite
+      )
+        return false;
       switch (piece.type) {
         case "N":
           return this.validKnightMove(
