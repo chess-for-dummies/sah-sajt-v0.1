@@ -106,6 +106,12 @@ export default {
       const prevRow = prev.row;
       const prevCol = prev.col;
       const piece = prev.piece;
+      if (this.prevMove !== null && piece.isWhite === this.prevMove.isWhite) {
+        return false;
+      }
+      if (this.prevMove === null && piece.isWhite === false) {
+        return false;
+      }
       if (piece === null) return false;
       if (prev.row === row && prev.col === col) return false;
       if (
@@ -154,6 +160,15 @@ export default {
       } else {
         //ending square for move if valid
         if (this.validMove(this.lastClicked, row, col)) {
+          this.prevMove = {
+            row,
+            col,
+            prevRow: this.lastClicked.row,
+            prevCol: this.lastClicked.col,
+            isWhite: this.lastClicked.piece.isWhite,
+            type: this.lastClicked.piece.type
+          };
+          //console.log(this.prevMove);
           this.board[row][col] = this.board[this.lastClicked.row][
             this.lastClicked.col
           ];
@@ -223,7 +238,8 @@ export default {
       rows: ["8", "7", "6", "5", "4", "3", "2", "1"],
       cols: ["a", "b", "c", "d", "e", "f", "g", "h"],
       board: [],
-      lastClicked: null
+      lastClicked: null,
+      prevMove: null
     };
   }
 };
