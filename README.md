@@ -1,4 +1,6 @@
 # sah-sajt
+A website for playing chess made using vue.js.  
+You can find the website here: /*placeholder*/
 
 ## Project setup
 ```
