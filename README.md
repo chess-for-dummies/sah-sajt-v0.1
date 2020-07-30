@@ -1,4 +1,4 @@
-# sah-sajt
+# Description
 A website for playing chess made using Vue.js.  
 You can find the website here: /*placeholder*/
 
