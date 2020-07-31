@@ -15,6 +15,7 @@
 
 <script>
 import ChessSquare from "./ChessSquare";
+import validMove, { isCastle, isPromotion } from "../js/moveValidation";
 export default {
   name: "ChessBoard",
   components: { ChessSquare },
@@ -34,132 +35,22 @@ export default {
       //console.log(this.board[row][col]);
       return this.board[row][col];
     },
-    validKnightMove(prevRow, prevCol, row, col /*isWhite*/) {
-      if (Math.abs(prevRow - row) + Math.abs(prevCol - col) === 3) {
-        return true;
-      }
-      return false;
-    },
-    validKingMove(prevRow, prevCol, row, col /*isWhite*/) {
-      if (Math.abs(prevRow - row) <= 1 && Math.abs(prevCol - col) <= 1) {
-        return true;
-      }
-      return false;
-    },
-    validQueenMove(prevRow, prevCol, row, col /*isWhite*/) {
-      if (
-        this.validBishopMove(prevRow, prevCol, row, col /*isWhite*/) ||
-        this.validRookMove(prevRow, prevCol, row, col /*isWhite*/)
-      ) {
-        return true;
-      }
-      return false;
-    },
-    validRookMove(prevRow, prevCol, row, col /*isWhite*/) {
-      if (Math.abs(prevRow - row) === 0 || Math.abs(prevCol - col) === 0) {
-        return true;
-      }
-      return false;
-    },
-    validBishopMove(prevRow, prevCol, row, col /*isWhite*/) {
-      if (Math.abs(prevRow - row) === Math.abs(prevCol - col)) {
-        return true;
-      }
-      return false;
-    },
-    validPawnMove(prevRow, prevCol, row, col, isWhite) {
-      if (isWhite) {
-        if (prevRow - row === 1 && col === prevCol) {
-          return true;
-        }
-        if (prevRow === 6 && row === 4 && col === prevCol) {
-          return true;
-        }
-        if (
-          prevRow - row === 1 &&
-          Math.abs(col - prevCol) === 1 &&
-          this.board[row][col] !== null &&
-          this.board[row][col].isWhite !== isWhite
-        ) {
-          return true;
-        }
-        return false;
-      } else {
-        if (row - prevRow === 1 && col === prevCol) {
-          return true;
-        }
-        if (row === 3 && prevRow === 1 && col === prevCol) {
-          return true;
-        }
-        if (
-          row - prevRow === 1 &&
-          Math.abs(col - prevCol) === 1 &&
-          this.board[row][col] !== null &&
-          this.board[row][col].isWhite !== isWhite
-        ) {
-          return true;
-        }
-        return false;
-      }
-    },
-    validMove(prev, row, col) {
-      const prevRow = prev.row;
-      const prevCol = prev.col;
-      const piece = prev.piece;
-      if (this.prevMove !== null && piece.isWhite === this.prevMove.isWhite) {
-        return false;
-      }
-      if (this.prevMove === null && piece.isWhite === false) {
-        return false;
-      }
-      if (piece === null) return false;
-      if (prev.row === row && prev.col === col) return false;
-      if (
-        this.board[row][col] !== null &&
-        this.board[prev.row][prev.col].isWhite === this.board[row][col].isWhite
-      )
-        return false;
-      switch (piece.type) {
-        case "N":
-          return this.validKnightMove(
-            prevRow,
-            prevCol,
-            row,
-            col,
-            piece.isWhite
-          );
-        case "K":
-          return this.validKingMove(prevRow, prevCol, row, col, piece.isWhite);
-        case "Q":
-          return this.validQueenMove(prevRow, prevCol, row, col, piece.isWhite);
-        case "R":
-          return this.validRookMove(prevRow, prevCol, row, col, piece.isWhite);
-        case "B":
-          return this.validBishopMove(
-            prevRow,
-            prevCol,
-            row,
-            col,
-            piece.isWhite
-          );
-        case "P":
-          return this.validPawnMove(prevRow, prevCol, row, col, piece.isWhite);
-      }
-    },
+
     clickedSquare(col, row) {
+      //if previous square doesn't exist, this is the beggining sqaure of a move
       if (
         this.lastClicked === null ||
         this.board[this.lastClicked.row][this.lastClicked.col] === null
       ) {
-        //beginning square for move
         this.lastClicked = {
           row,
           col,
           piece: this.board[row][col]
         };
       } else {
-        //ending square for move if valid
-        if (this.validMove(this.lastClicked, row, col)) {
+        //this is the ending move for the square if it's valid
+        if (validMove(this.board, this.prevMove, this.lastClicked, row, col)) {
+          //set the previous move to the one just played
           this.prevMove = {
             row,
             col,
@@ -168,11 +59,47 @@ export default {
             isWhite: this.lastClicked.piece.isWhite,
             type: this.lastClicked.piece.type
           };
-          //console.log(this.prevMove);
-          this.board[row][col] = this.board[this.lastClicked.row][
-            this.lastClicked.col
-          ];
-          this.board[this.lastClicked.row][this.lastClicked.col] = null;
+          console.log(isCastle(this.lastClicked, row, col));
+          //check for special moves (castle, promotion)
+          if (isPromotion(this.lastClicked, row)) {
+            //auto-queen on promotion
+            this.board[row][col] = this.board[this.lastClicked.row][
+              this.lastClicked.col
+            ];
+            this.board[row][col].type = "Q";
+            this.board[this.lastClicked.row][this.lastClicked.col] = null;
+          } else if (isCastle(this.lastClicked, row, col)) {
+            //king already moves to correct square
+            this.board[row][col] = this.board[this.lastClicked.row][
+              this.lastClicked.col
+            ];
+            this.board[this.lastClicked.row][this.lastClicked.col] = null;
+            //moving the rook
+            let rookRow, rookColPrev, rookColNew;
+            if (this.lastClicked.piece.isWhite) {
+              rookRow = 7;
+            } else {
+              rookRow = 0;
+            }
+            if (isCastle(this.lastClicked, row, col) === 1) {
+              //kingside castling
+              rookColPrev = 7;
+              rookColNew = 5;
+            } else {
+              //queenside castling
+              rookColPrev = 0;
+              rookColNew = 3;
+            }
+            //move rook to correct square
+            this.board[rookRow][rookColNew] = this.board[rookRow][rookColPrev];
+            this.board[rookRow][rookColPrev] = null;
+          } else {
+            //update the board for regular moves
+            this.board[row][col] = this.board[this.lastClicked.row][
+              this.lastClicked.col
+            ];
+            this.board[this.lastClicked.row][this.lastClicked.col] = null;
+          }
         }
         this.lastClicked = null;
       }

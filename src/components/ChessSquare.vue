@@ -15,7 +15,7 @@ export default {
   methods: {
     isLight() {
       const par = this.row + this.col;
-      return par % 2 === 1;
+      return par % 2 === 0;
     },
     clickedSquare() {
       // console.log("clicked", this.col, this.row);
