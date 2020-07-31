@@ -18,6 +18,7 @@ import ChessSquare from "./ChessSquare";
 import validMove from "../js/moveValidation";
 import makeMove from "../js/makeMove";
 import generateBoard from "../js/generateGame";
+
 export default {
   name: "ChessBoard",
   components: { ChessSquare },
@@ -33,8 +34,6 @@ export default {
       return col.charCodeAt(0) - "a".charCodeAt(0);
     },
     getPiece(row, col) {
-      //console.log(row, col);
-      //console.log(this.board[row][col]);
       return this.board[row][col];
     },
 

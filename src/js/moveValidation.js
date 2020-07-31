@@ -1,10 +1,10 @@
-const validKnightMove = (prevRow, prevCol, row, col /*isWhite*/) => {
+const validKnightMove = (board, prevRow, prevCol, row, col /*isWhite*/) => {
   if (Math.abs(prevRow - row) + Math.abs(prevCol - col) === 3) {
     return true;
   }
   return false;
 };
-const validKingMove = (prevRow, prevCol, row, col, isWhite) => {
+const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
   //check for castle
   if (isWhite && row === 7 && prevRow === 7) {
     //white castles
@@ -37,23 +37,51 @@ const validKingMove = (prevRow, prevCol, row, col, isWhite) => {
   }
   return false;
 };
-const validQueenMove = (prevRow, prevCol, row, col /*isWhite*/) => {
-  if (
-    validBishopMove(prevRow, prevCol, row, col /*isWhite*/) ||
-    validRookMove(prevRow, prevCol, row, col /*isWhite*/)
-  ) {
-    return true;
-  }
-  return false;
-};
-const validRookMove = (prevRow, prevCol, row, col /*isWhite*/) => {
+const validQueenMove = (board, prevRow, prevCol, row, col /*isWhite*/) => {
   if (Math.abs(prevRow - row) === 0 || Math.abs(prevCol - col) === 0) {
+    return validRookMove(board, prevRow, prevCol, row, col /*isWhite*/);
+  }
+  if (Math.abs(prevRow - row) === Math.abs(prevCol - col)) {
+    return validBishopMove(board, prevRow, prevCol, row, col /*isWhite*/);
+  }
+  return false;
+};
+const validRookMove = (board, prevRow, prevCol, row, col /*isWhite*/) => {
+  if (Math.abs(prevRow - row) === 0 || Math.abs(prevCol - col) === 0) {
+    const dx = Math.sign(row - prevRow);
+    const dy = Math.sign(col - prevCol);
+    for (let curri = prevRow, currj = prevCol; (curri += dx), (currj += dy); ) {
+      if (curri === row && currj === col) break;
+      if (
+        !(curri === row && currj === col) &&
+        !(curri === prevRow && currj === prevCol)
+      ) {
+        if (board[curri][currj] !== null) {
+          //cant go through pieces
+          return false;
+        }
+      }
+    }
     return true;
   }
   return false;
 };
-const validBishopMove = (prevRow, prevCol, row, col /*isWhite*/) => {
+const validBishopMove = (board, prevRow, prevCol, row, col /*isWhite*/) => {
   if (Math.abs(prevRow - row) === Math.abs(prevCol - col)) {
+    const dx = Math.sign(row - prevRow);
+    const dy = Math.sign(col - prevCol);
+    for (let curri = prevRow, currj = prevCol; (curri += dx), (currj += dy); ) {
+      if (curri === row && currj === col) break;
+      if (
+        !(curri === row && currj === col) &&
+        !(curri === prevRow && currj === prevCol)
+      ) {
+        if (board[curri][currj] !== null) {
+          //cant go through pieces
+          return false;
+        }
+      }
+    }
     return true;
   }
   return false;
@@ -94,28 +122,32 @@ const validPawnMove = (board, prevRow, prevCol, row, col, isWhite) => {
   }
 };
 
-/*const findKingPosition = (board, isWhite) => {
+const findKingPosition = (board, isWhite) => {
   for (let i = 0; i <= 7; i++) {
-    for (let j = 0; j <= j; j++) {
-      if (board[i][j].isWhite === isWhite && board[i][j].type === "K") {
+    for (let j = 0; j <= 7; j++) {
+      if (
+        board[i][j] !== null &&
+        board[i][j].isWhite === isWhite &&
+        board[i][j].type === "K"
+      ) {
         return { row: i, col: j };
       }
     }
   }
   return undefined;
 };
-
-const kingIsAttackedAfterMove = (board, prev, row, col) => {
+const squareIsAttacked = (row, col, isWhite) => {};
+const kingIsAttackedAfterMove = (board, prevMove, prev, row, col) => {
   const prevRow = prev.row;
   const prevCol = prev.col;
   const piece = prev.piece;
   const newBoard = board.map(function(arr) {
     return arr.slice();
   });
-
   //make move on new board
-  //newBoard[row][col]=board[prevRow][prevCol]
-};*/
+  newBoard[row][col] = board[prevRow][prevCol];
+  newBoard[prevRow][prevCol] = null;
+};
 
 const validMove = (board, prevMove, prev, row, col) => {
   const prevRow = prev.row;
@@ -127,27 +159,30 @@ const validMove = (board, prevMove, prev, row, col) => {
   if (prevMove === null && piece.isWhite === false) {
     return false;
   }
-  if (piece === null) return false;
+  if (piece === null || piece === undefined) return false;
   if (prev.row === row && prev.col === col) return false;
   if (
     board[row][col] !== null &&
     board[prev.row][prev.col].isWhite === board[row][col].isWhite
   )
     return false;
+
+  kingIsAttackedAfterMove(board, prevMove, prev, row, col);
   /*if (kingIsAttackedAfterMove(board, prevMove, prev, row, col)) {
     return false;
   }*/
+
   switch (piece.type) {
     case "N":
-      return validKnightMove(prevRow, prevCol, row, col, piece.isWhite);
+      return validKnightMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "K":
-      return validKingMove(prevRow, prevCol, row, col, piece.isWhite);
+      return validKingMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "Q":
-      return validQueenMove(prevRow, prevCol, row, col, piece.isWhite);
+      return validQueenMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "R":
-      return validRookMove(prevRow, prevCol, row, col, piece.isWhite);
+      return validRookMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "B":
-      return validBishopMove(prevRow, prevCol, row, col, piece.isWhite);
+      return validBishopMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "P":
       return validPawnMove(board, prevRow, prevCol, row, col, piece.isWhite);
   }

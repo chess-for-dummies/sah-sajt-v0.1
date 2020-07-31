@@ -10,7 +10,7 @@ function makeMove(chessBoard, row, col) {
     isWhite: chessBoard.lastClicked.piece.isWhite,
     type: chessBoard.lastClicked.piece.type,
   };
-  console.log(isCastle(chessBoard.lastClicked, row, col));
+  //console.log(isCastle(chessBoard.lastClicked, row, col));
   //check for special moves (castle, promotion)
   if (isPromotion(chessBoard.lastClicked, row)) {
     //auto-queen on promotion
