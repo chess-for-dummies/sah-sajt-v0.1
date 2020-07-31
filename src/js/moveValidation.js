@@ -10,12 +10,18 @@ const validKingMoveBasic = (board, prevRow, prevCol, row, col, isWhite) => {
   return Math.abs(prevRow - row) <= 1 && Math.abs(prevCol - col) <= 1;
 };
 
-const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
+const validKingMove = (board, prevRow, prevCol, row, col, isWhite, moved) => {
   //check for castle
   if (isWhite && row === 7 && prevRow === 7) {
     //white castles
     if (prevCol === 4) {
+      if (moved.white.king) {
+        return false;
+      }
       if (col === 6) {
+        if (moved.white.hRook) {
+          return false;
+        }
         if (squareIsAttacked(board, row, prevCol, isWhite)) {
           return false;
         }
@@ -27,6 +33,9 @@ const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
       }
       if (col === 2) {
         //queenside castle
+        if (moved.white.aRook) {
+          return false;
+        }
         if (squareIsAttacked(board, row, prevCol, isWhite)) {
           return false;
         }
@@ -39,8 +48,14 @@ const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
   }
   if (!isWhite && row === 0 && prevRow === 0) {
     //black castles
+    if (moved.black.king) {
+      return false;
+    }
     if (prevCol === 4) {
       if (col === 6) {
+        if (moved.black.hRook) {
+          return false;
+        }
         if (squareIsAttacked(board, row, prevCol, isWhite)) {
           return false;
         }
@@ -51,6 +66,9 @@ const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
         return true;
       }
       if (col === 2) {
+        if (moved.black.aRook) {
+          return false;
+        }
         if (squareIsAttacked(board, row, prevCol, isWhite)) {
           return false;
         }
@@ -116,7 +134,15 @@ const validBishopMove = (board, prevRow, prevCol, row, col /*isWhite*/) => {
   }
   return false;
 };
-const validPawnMove = (board, prevRow, prevCol, row, col, isWhite) => {
+const validPawnMove = (
+  board,
+  prevRow,
+  prevCol,
+  row,
+  col,
+  isWhite,
+  lastMove
+) => {
   if (isWhite) {
     if (prevRow - row === 1 && col === prevCol) {
       return true;
@@ -132,6 +158,16 @@ const validPawnMove = (board, prevRow, prevCol, row, col, isWhite) => {
     ) {
       return true;
     }
+    if (
+      lastMove.type == "P" &&
+      lastMove.row - lastMove.prevRow === 2 &&
+      col === lastMove.col &&
+      Math.abs(col - prevCol) === 1 &&
+      prevRow - row === 1 //en peassant
+    ) {
+      return true;
+    }
+
     return false;
   } else {
     if (row - prevRow === 1 && col === prevCol) {
@@ -148,6 +184,17 @@ const validPawnMove = (board, prevRow, prevCol, row, col, isWhite) => {
     ) {
       return true;
     }
+    if (
+      //en peassant
+      lastMove.type == "P" &&
+      lastMove.prevRow - lastMove.row === 2 &&
+      col === lastMove.col &&
+      Math.abs(col - prevCol) === 1 &&
+      row - prevRow === 1
+    ) {
+      return true;
+    }
+
     return false;
   }
 };
@@ -176,7 +223,6 @@ const validPawnMoveCapture = (board, prevRow, prevCol, row, col, isWhite) => {
 };
 
 const findKingPosition = (board, isWhite) => {
-  //console.log(board, isWhite);
   for (let i = 0; i <= 7; i++) {
     for (let j = 0; j <= 7; j++) {
       if (
@@ -238,16 +284,14 @@ const squareIsAttacked = (board, row, col, isWhite) => {
   return false;
 };
 const kingIsAttackedAfterMove = (board, prevMove, isWhite) => {
-  //console.log(isWhite);
   const kingPos = findKingPosition(board, isWhite);
-  //console.log("king at:", kingPos);
   if (squareIsAttacked(board, kingPos.row, kingPos.col, isWhite)) {
     return true;
   }
   return false;
 };
 
-const validMove = (board, prevMove, prev, row, col) => {
+const validMove = (board, prevMove, prev, row, col, moved, lastMove) => {
   const prevRow = prev.row;
   const prevCol = prev.col;
   const piece = prev.piece;
@@ -266,7 +310,6 @@ const validMove = (board, prevMove, prev, row, col) => {
     return false;
 
   const boardAfterMove = getNewBoard(board, prev, row, col);
-  //console.log(boardAfterMove);
   const newPrevMove = {
     row,
     col,
@@ -275,9 +318,6 @@ const validMove = (board, prevMove, prev, row, col) => {
     isWhite: prev.piece.isWhite,
     type: prev.piece.type,
   };
-  console.log(
-    kingIsAttackedAfterMove(boardAfterMove, newPrevMove, prev.piece.isWhite)
-  );
   if (
     kingIsAttackedAfterMove(boardAfterMove, newPrevMove, prev.piece.isWhite)
   ) {
@@ -288,7 +328,15 @@ const validMove = (board, prevMove, prev, row, col) => {
     case "N":
       return validKnightMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "K":
-      return validKingMove(board, prevRow, prevCol, row, col, piece.isWhite);
+      return validKingMove(
+        board,
+        prevRow,
+        prevCol,
+        row,
+        col,
+        piece.isWhite,
+        moved
+      );
     case "Q":
       return validQueenMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "R":
@@ -296,8 +344,28 @@ const validMove = (board, prevMove, prev, row, col) => {
     case "B":
       return validBishopMove(board, prevRow, prevCol, row, col, piece.isWhite);
     case "P":
-      return validPawnMove(board, prevRow, prevCol, row, col, piece.isWhite);
+      return validPawnMove(
+        board,
+        prevRow,
+        prevCol,
+        row,
+        col,
+        piece.isWhite,
+        lastMove
+      );
   }
+};
+const isEnPeassant = (board, prevRow, prevCol, row, col, isWhite, lastMove) => {
+  if (board[prevRow][prevCol].type !== "P") {
+    return false;
+  }
+  if (board[row][col] !== null) {
+    return false;
+  }
+  if (Math.abs(col - prevCol) !== 1) {
+    return false;
+  }
+  return true;
 };
 const isPromotion = (prev, row) => {
   const piece = prev.piece;
@@ -346,4 +414,4 @@ const isCastle = (prev, row, col) => {
   return 0;
 };
 
-export { isCastle, isPromotion, validMove as default };
+export { isCastle, isPromotion, isEnPeassant, validMove as default };

@@ -1,6 +1,6 @@
-import { isCastle, isPromotion } from "./moveValidation";
+import { isCastle, isPromotion, isEnPeassant } from "./moveValidation";
 
-function getNewBoard(board, prev, row, col) {
+function getNewBoard(board, prev, row, col, lastMove) {
   const newBoard = board.map(function(arr) {
     return arr.slice();
   });
@@ -33,6 +33,21 @@ function getNewBoard(board, prev, row, col) {
     //move rook to correct square
     newBoard[rookRow][rookColNew] = newBoard[rookRow][rookColPrev];
     newBoard[rookRow][rookColPrev] = null;
+  } else if (
+    isEnPeassant(
+      board,
+      prev.row,
+      prev.col,
+      row,
+      col,
+      prev.piece.isWhite,
+      lastMove
+    )
+  ) {
+    const enpSquare = { row: prev.piece.isWhite ? row + 1 : row - 1, col: col };
+    newBoard[row][col] = newBoard[prev.row][prev.col];
+    newBoard[prev.row][prev.col] = null;
+    newBoard[enpSquare.row][enpSquare.col] = null;
   } else {
     //update the board for regular moves
     newBoard[row][col] = board[prev.row][prev.col];
@@ -55,8 +70,34 @@ function makeMove(chessBoard, row, col) {
     chessBoard.board,
     chessBoard.lastClicked,
     row,
-    col
+    col,
+    chessBoard.prevMove
   );
+  const prevMove = chessBoard.prevMove;
+  if (prevMove.type === "K") {
+    if (prevMove.isWhite) {
+      chessBoard.moved.white.king = true;
+    } else {
+      chessBoard.moved.black.king = true;
+    }
+  }
+  if (prevMove.type === "R") {
+    if (prevMove.isWhite) {
+      if (prevMove.prevRow === 7 && prevMove.prevCol === 0) {
+        chessBoard.moved.white.aRook = true;
+      }
+      if (prevMove.prevRow === 7 && prevMove.prevCol === 7) {
+        chessBoard.moved.white.hRook = true;
+      }
+    } else {
+      if (prevMove.prevRow === 0 && prevMove.prevCol === 0) {
+        chessBoard.moved.black.aRook = true;
+      }
+      if (prevMove.prevRow === 0 && prevMove.prevCol === 7) {
+        chessBoard.moved.black.hRook = true;
+      }
+    }
+  }
 }
 
 export { makeMove as default, getNewBoard };

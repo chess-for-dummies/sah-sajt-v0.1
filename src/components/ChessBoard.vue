@@ -57,7 +57,17 @@ export default {
       } else {
         //this is the ending move for the square if it's valid
         //make the move if it's valid
-        if (validMove(this.board, this.prevMove, this.lastClicked, row, col)) {
+        if (
+          validMove(
+            this.board,
+            this.prevMove,
+            this.lastClicked,
+            row,
+            col,
+            this.moved,
+            this.prevMove
+          )
+        ) {
           makeMove(this, row, col);
         }
         this.lastClicked = null;
@@ -71,7 +81,19 @@ export default {
       cols: ["a", "b", "c", "d", "e", "f", "g", "h"],
       board: [],
       lastClicked: null,
-      prevMove: null
+      prevMove: null,
+      moved: {
+        white: {
+          king: false,
+          aRook: false,
+          hRook: false
+        },
+        black: {
+          king: false,
+          aRook: false,
+          hRook: false
+        }
+      }
     };
   }
 };
