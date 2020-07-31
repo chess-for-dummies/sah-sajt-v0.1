@@ -93,6 +93,30 @@ const validPawnMove = (board, prevRow, prevCol, row, col, isWhite) => {
     return false;
   }
 };
+
+/*const findKingPosition = (board, isWhite) => {
+  for (let i = 0; i <= 7; i++) {
+    for (let j = 0; j <= j; j++) {
+      if (board[i][j].isWhite === isWhite && board[i][j].type === "K") {
+        return { row: i, col: j };
+      }
+    }
+  }
+  return undefined;
+};
+
+const kingIsAttackedAfterMove = (board, prev, row, col) => {
+  const prevRow = prev.row;
+  const prevCol = prev.col;
+  const piece = prev.piece;
+  const newBoard = board.map(function(arr) {
+    return arr.slice();
+  });
+
+  //make move on new board
+  //newBoard[row][col]=board[prevRow][prevCol]
+};*/
+
 const validMove = (board, prevMove, prev, row, col) => {
   const prevRow = prev.row;
   const prevCol = prev.col;
@@ -110,6 +134,9 @@ const validMove = (board, prevMove, prev, row, col) => {
     board[prev.row][prev.col].isWhite === board[row][col].isWhite
   )
     return false;
+  /*if (kingIsAttackedAfterMove(board, prevMove, prev, row, col)) {
+    return false;
+  }*/
   switch (piece.type) {
     case "N":
       return validKnightMove(prevRow, prevCol, row, col, piece.isWhite);
