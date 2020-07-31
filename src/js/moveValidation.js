@@ -1,9 +1,15 @@
+import { getNewBoard } from "./makeMove";
+
 const validKnightMove = (board, prevRow, prevCol, row, col /*isWhite*/) => {
   if (Math.abs(prevRow - row) + Math.abs(prevCol - col) === 3) {
     return true;
   }
   return false;
 };
+const validKingMoveBasic = (board, prevRow, prevCol, row, col, isWhite) => {
+  return Math.abs(prevRow - row) <= 1 && Math.abs(prevCol - col) <= 1;
+};
+
 const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
   //check for castle
   if (isWhite && row === 7 && prevRow === 7) {
@@ -121,8 +127,32 @@ const validPawnMove = (board, prevRow, prevCol, row, col, isWhite) => {
     return false;
   }
 };
+const validPawnMoveCapture = (board, prevRow, prevCol, row, col, isWhite) => {
+  if (isWhite) {
+    if (
+      prevRow - row === 1 &&
+      Math.abs(col - prevCol) === 1 &&
+      board[row][col] !== null &&
+      board[row][col].isWhite !== isWhite
+    ) {
+      return true;
+    }
+    return false;
+  } else {
+    if (
+      row - prevRow === 1 &&
+      Math.abs(col - prevCol) === 1 &&
+      board[row][col] !== null &&
+      board[row][col].isWhite !== isWhite
+    ) {
+      return true;
+    }
+    return false;
+  }
+};
 
 const findKingPosition = (board, isWhite) => {
+  //console.log(board, isWhite);
   for (let i = 0; i <= 7; i++) {
     for (let j = 0; j <= 7; j++) {
       if (
@@ -134,19 +164,63 @@ const findKingPosition = (board, isWhite) => {
       }
     }
   }
-  return undefined;
+  return null;
 };
-const squareIsAttacked = (row, col, isWhite) => {};
-const kingIsAttackedAfterMove = (board, prevMove, prev, row, col) => {
-  const prevRow = prev.row;
-  const prevCol = prev.col;
-  const piece = prev.piece;
-  const newBoard = board.map(function(arr) {
-    return arr.slice();
-  });
-  //make move on new board
-  newBoard[row][col] = board[prevRow][prevCol];
-  newBoard[prevRow][prevCol] = null;
+const canGetTo = (board, prevRow, prevCol, row, col) => {
+  const piece = board[prevRow][prevCol];
+  if (!piece) return false;
+  switch (piece.type) {
+    case "K":
+      return validKingMoveBasic(
+        board,
+        prevRow,
+        prevCol,
+        row,
+        col,
+        piece.isWhite
+      );
+    case "B":
+      return validBishopMove(board, prevRow, prevCol, row, col, piece.isWhite);
+    case "R":
+      return validRookMove(board, prevRow, prevCol, row, col, piece.isWhite);
+    case "N":
+      return validKnightMove(board, prevRow, prevCol, row, col, piece.isWhite);
+    case "Q":
+      return validQueenMove(board, prevRow, prevCol, row, col, piece.isWhite);
+    case "P":
+      return validPawnMoveCapture(
+        board,
+        prevRow,
+        prevCol,
+        row,
+        col,
+        piece.isWhite
+      );
+  }
+};
+const squareIsAttacked = (board, prevMove, row, col, isWhite) => {
+  for (let i = 0; i <= 7; i++) {
+    for (let j = 0; j <= 7; j++) {
+      const prev = { row: i, col: j, piece: board[i][j] };
+      if (
+        board[i][j] !== null &&
+        board[i][j].isWhite !== isWhite &&
+        canGetTo(board, i, j, row, col)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+const kingIsAttackedAfterMove = (board, prevMove, isWhite) => {
+  //console.log(isWhite);
+  const kingPos = findKingPosition(board, isWhite);
+  //console.log("king at:", kingPos);
+  if (squareIsAttacked(board, prevMove, kingPos.row, kingPos.col, isWhite)) {
+    return true;
+  }
+  return false;
 };
 
 const validMove = (board, prevMove, prev, row, col) => {
@@ -167,10 +241,24 @@ const validMove = (board, prevMove, prev, row, col) => {
   )
     return false;
 
-  kingIsAttackedAfterMove(board, prevMove, prev, row, col);
-  /*if (kingIsAttackedAfterMove(board, prevMove, prev, row, col)) {
+  const boardAfterMove = getNewBoard(board, prev, row, col);
+  //console.log(boardAfterMove);
+  const newPrevMove = {
+    row,
+    col,
+    prevRow: prev.row,
+    prevCol: prev.col,
+    isWhite: prev.piece.isWhite,
+    type: prev.piece.type,
+  };
+  console.log(
+    kingIsAttackedAfterMove(boardAfterMove, newPrevMove, prev.piece.isWhite)
+  );
+  if (
+    kingIsAttackedAfterMove(boardAfterMove, newPrevMove, prev.piece.isWhite)
+  ) {
     return false;
-  }*/
+  }
 
   switch (piece.type) {
     case "N":

@@ -1,5 +1,7 @@
 <template>
   <div class="chess-board">
+    <p v-if="prevMove.isWhite">Black to move</p>
+    <p v-else>White to move</p>
     <div v-for="(row,rowIdx) in board" :key="rowIdx" class="chess-board-row">
       <div v-for="(square,colIdx) in row" :key="colIdx">
         <ChessSquare
@@ -24,6 +26,9 @@ export default {
   components: { ChessSquare },
   created() {
     generateBoard(this);
+    this.prevMove = {
+      isWhite: false
+    };
     //console.log(this.board);
   },
   methods: {
