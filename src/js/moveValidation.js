@@ -16,11 +16,23 @@ const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
     //white castles
     if (prevCol === 4) {
       if (col === 6) {
+        if (squareIsAttacked(board, row, prevCol, isWhite)) {
+          return false;
+        }
+        if (squareIsAttacked(board, row, 5, isWhite)) {
+          return false;
+        }
         //kingside castle
         return true;
       }
       if (col === 2) {
         //queenside castle
+        if (squareIsAttacked(board, row, prevCol, isWhite)) {
+          return false;
+        }
+        if (squareIsAttacked(board, row, 3, isWhite)) {
+          return false;
+        }
         return true;
       }
     }
@@ -29,10 +41,22 @@ const validKingMove = (board, prevRow, prevCol, row, col, isWhite) => {
     //black castles
     if (prevCol === 4) {
       if (col === 6) {
+        if (squareIsAttacked(board, row, prevCol, isWhite)) {
+          return false;
+        }
+        if (squareIsAttacked(board, row, 5, isWhite)) {
+          return false;
+        }
         //kingside castle
         return true;
       }
       if (col === 2) {
+        if (squareIsAttacked(board, row, prevCol, isWhite)) {
+          return false;
+        }
+        if (squareIsAttacked(board, row, 3, isWhite)) {
+          return false;
+        }
         //queenside castle
         return true;
       }
@@ -198,7 +222,7 @@ const canGetTo = (board, prevRow, prevCol, row, col) => {
       );
   }
 };
-const squareIsAttacked = (board, prevMove, row, col, isWhite) => {
+const squareIsAttacked = (board, row, col, isWhite) => {
   for (let i = 0; i <= 7; i++) {
     for (let j = 0; j <= 7; j++) {
       const prev = { row: i, col: j, piece: board[i][j] };
@@ -217,7 +241,7 @@ const kingIsAttackedAfterMove = (board, prevMove, isWhite) => {
   //console.log(isWhite);
   const kingPos = findKingPosition(board, isWhite);
   //console.log("king at:", kingPos);
-  if (squareIsAttacked(board, prevMove, kingPos.row, kingPos.col, isWhite)) {
+  if (squareIsAttacked(board, kingPos.row, kingPos.col, isWhite)) {
     return true;
   }
   return false;
