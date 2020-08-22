@@ -190,7 +190,7 @@ const validPawnMove = (
     if (
       lastMove.type === "P" &&
       lastMove.row - lastMove.prevRow === 2 &&
-      lastMove.row === row &&
+      lastMove.row === prevRow &&
       col === lastMove.col &&
       Math.abs(col - prevCol) === 1 &&
       prevRow - row === 1 //en peassant
@@ -223,7 +223,7 @@ const validPawnMove = (
       //en peassant
       lastMove.type == "P" &&
       lastMove.prevRow - lastMove.row === 2 &&
-      lastMove.row === row &&
+      lastMove.row === prevRow &&
       col === lastMove.col &&
       Math.abs(col - prevCol) === 1 &&
       row - prevRow === 1

@@ -66,7 +66,12 @@ export default {
   width: 100%;
 }
 .highlighted {
-  background: #3eaf0a;
   transition: all 0.2s;
+}
+.chess-square-light.highlighted {
+  background: #3eaf0a;
+}
+.chess-square-dark.highlighted {
+  background: #2f8308;
 }
 </style>
