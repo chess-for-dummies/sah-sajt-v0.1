@@ -54,10 +54,10 @@ export default {
   position: relative;
 }
 .chess-square-dark {
-  background: rgb(83, 52, 11);
+  background: rgb(181, 136, 99);
 }
 .chess-square-light {
-  background: rgb(238, 184, 113);
+  background: rgb(240, 217, 181);
 }
 .chess-piece-image {
   display: block;
@@ -69,9 +69,9 @@ export default {
   transition: all 0.2s;
 }
 .chess-square-light.highlighted {
-  background: #3eaf0a;
+  background: #55ee0fde;
 }
 .chess-square-dark.highlighted {
-  background: #2f8308;
+  background: #46c50be3;
 }
 </style>
