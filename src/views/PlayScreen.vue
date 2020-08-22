@@ -1,6 +1,6 @@
 <template>
   <div class="play">
-    <h1>Play Screen here</h1>
+    <h1>Single player game</h1>
     <ChessBoard></ChessBoard>
   </div>
 </template>
@@ -10,7 +10,7 @@ import ChessBoard from "../components/ChessBoard";
 export default {
   name: "PlayScreen",
   components: {
-    ChessBoard
-  }
+    ChessBoard,
+  },
 };
 </script>
