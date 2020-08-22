@@ -1,7 +1,11 @@
 <template>
   <div
     class="chess-square"
-    v-bind:class="{'chess-square-light':isLight(),'chess-square-dark':!isLight()}"
+    v-bind:class="{
+      'chess-square-light': isLight(),
+      'chess-square-dark': !isLight(),
+      highlighted: highlight,
+    }"
     v-on:click="clickedSquare"
   >
     <img :src="piecePicture" class="chess-piece-image" />
@@ -11,7 +15,7 @@
 <script>
 export default {
   name: "ChessSquare",
-  props: ["row", "col", "piece"],
+  props: ["row", "col", "piece", "highlight"],
   methods: {
     isLight() {
       const par = this.row + this.col;
@@ -20,7 +24,7 @@ export default {
     clickedSquare() {
       // console.log("clicked", this.col, this.row);
       this.$emit("clickedSquare", this.col, this.row);
-    }
+    },
   },
   created() {
     //console.log(this.row, this.col, this.piece);
@@ -36,8 +40,8 @@ export default {
       return require(`../assets/chessSet/Chess_${this.piece.type.toLowerCase()}${
         this.piece.isWhite ? "l" : "d"
       }t60.png`);
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -60,5 +64,9 @@ export default {
   margin-left: auto;
   margin-right: auto;
   width: 100%;
+}
+.highlighted {
+  background: #3eaf0a;
+  transition: all 0.2s;
 }
 </style>

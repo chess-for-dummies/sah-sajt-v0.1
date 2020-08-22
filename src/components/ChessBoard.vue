@@ -2,13 +2,14 @@
   <div class="chess-board">
     <p v-if="prevMove.isWhite">Black to move</p>
     <p v-else>White to move</p>
-    <div v-for="(row,rowIdx) in board" :key="rowIdx" class="chess-board-row">
-      <div v-for="(square,colIdx) in row" :key="colIdx">
+    <div v-for="(row, rowIdx) in board" :key="rowIdx" class="chess-board-row">
+      <div v-for="(square, colIdx) in row" :key="colIdx">
         <ChessSquare
           :row="rowIdx"
           :col="colIdx"
-          :piece="getPiece(rowIdx,colIdx)"
+          :piece="getPiece(rowIdx, colIdx)"
           v-on:clickedSquare="clickedSquare"
+          :highlight="isHighlighted(rowIdx, colIdx)"
         ></ChessSquare>
       </div>
     </div>
@@ -17,7 +18,7 @@
 
 <script>
 import ChessSquare from "./ChessSquare";
-import validMove from "../js/moveValidation";
+import validMove, { allValidMoves } from "../js/moveValidation";
 import makeMove from "../js/makeMove";
 import generateBoard from "../js/generateGame";
 
@@ -27,7 +28,7 @@ export default {
   created() {
     generateBoard(this);
     this.prevMove = {
-      isWhite: false
+      isWhite: false,
     };
     //console.log(this.board);
   },
@@ -42,6 +43,15 @@ export default {
       return this.board[row][col];
     },
 
+    isHighlighted: function(rowIdx, colIdx) {
+      let good = false;
+      this.highlighted.forEach((square) => {
+        if (square.row === rowIdx && square.col === colIdx) {
+          good = true;
+        }
+      });
+      return good;
+    },
     clickedSquare(col, row) {
       //if previous square doesn't exist, this is the beggining sqaure of a move
 
@@ -52,8 +62,24 @@ export default {
         this.lastClicked = {
           row,
           col,
-          piece: this.board[row][col]
+          piece: this.board[row][col],
         };
+        this.highlighted = allValidMoves(
+          this.board,
+          this.prevMove,
+          this.lastClicked,
+          this.moved,
+          this.prevMove
+        );
+        // console.log(
+        //   allValidMoves(
+        //     this.board,
+        //     this.prevMove,
+        //     this.lastClicked,
+        //     this.moved,
+        //     this.prevMove
+        //   )
+        // );
       } else {
         //this is the ending move for the square if it's valid
         //make the move if it's valid
@@ -71,31 +97,33 @@ export default {
           makeMove(this, row, col);
         }
         this.lastClicked = null;
+        this.highlighted = [];
       }
       this.$forceUpdate();
-    }
+    },
   },
   data: function() {
     return {
       rows: ["8", "7", "6", "5", "4", "3", "2", "1"],
       cols: ["a", "b", "c", "d", "e", "f", "g", "h"],
       board: [],
+      highlighted: [],
       lastClicked: null,
       prevMove: null,
       moved: {
         white: {
           king: false,
           aRook: false,
-          hRook: false
+          hRook: false,
         },
         black: {
           king: false,
           aRook: false,
-          hRook: false
-        }
-      }
+          hRook: false,
+        },
+      },
     };
-  }
+  },
 };
 </script>
 
